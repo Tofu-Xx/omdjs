@@ -56,10 +56,21 @@
     option.value = option.value.filter(k => k !== v);
   }
   /*  */
+  const isRect = ref(JSON.parse(localStorage.getItem('isRect')) ?? true);
+  const ctrl = {
+    rotate() {
+      isRect.value = !isRect.value;
+    },
+    clear() {
+      equalSet.value.clear();
+    },
+  };
+  /*  */
   const newVal = ref('');
   function submitHandler() {
     if (newVal.value.trim() === '') return;
     try {
+      ctrl[newVal.value]?.();
       evaluate(newVal.value);
       selectHandler(newVal.value);
       option.value.includes(newVal.value) || option.value.push(newVal.value);
@@ -73,10 +84,10 @@
   watchEffect(() => {
     localStorage.setItem('equalSet', JSON.stringify(Array(...equalSet.value)));
     localStorage.setItem('option', JSON.stringify(option.value));
+    localStorage.setItem('isRect', isRect.value);
     iptRef.value?.focus();
   });
   /*  */
-  const isRect = ref(true)
 </script>
 
 <template>
@@ -85,7 +96,7 @@
       <li v-for="(outside,outi) of equalSet">
         <ol>
           <li
-            v-show="outi <= ini" v-for="(inside,ini) of equalSet"
+            v-show="isRect || outi <= ini" v-for="(inside,ini) of equalSet"
             v-bind="cell(outside,inside,outi,ini,equalSet.size)">
           </li>
         </ol>
@@ -93,7 +104,7 @@
     </ol>
     <ul>
       <li v-for="(v,k) of colorMap">
-        <button v-if="k !== 'neglect'" :style="{backgroundColor: v}">{{ k }}</button>
+        <pre v-if="k !== 'neglect'" :style="{backgroundColor: v}">{{ k }}</pre>
       </li>
     </ul>
     <ul>
@@ -105,7 +116,8 @@
       </li>
     </ul>
     <form @submit.prevent="submitHandler">
-      <input v-model="newVal" ref="ipt">
+      <input v-model.trim="newVal" ref="ipt">
+      <button v-for="(f,k) of ctrl" @click="f" type="button">{{ k }}</button>
     </form>
   </main>
 </template>
@@ -161,6 +173,7 @@
             height: 100%;
             aspect-ratio: 1/1;
             position: relative;
+            white-space: nowrap;
 
             &[row]::after {
               position: absolute;
@@ -197,6 +210,11 @@
 
       button {
         width: 100%;
+        padding: 0 0.5rem;
+        border-radius: 0.5px;
+      }
+
+      pre {
         padding: 0 0.5rem;
         border-radius: 0.5px;
       }
