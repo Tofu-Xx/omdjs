@@ -64,20 +64,35 @@
     clear() {
       equalSet.value.clear();
     },
+    order() {
+      option.value = [...new Set([...equalSet.value, ...option.value])];
+    },
+    sort() {
+      equalSet.value = new Set([...equalSet.value].sort((a, b) => evaluate(`(${a}) >= (${b})`) - .5));
+      ctrl.order();
+    },
+    all() {
+      equalSet.value = new Set(option.value);
+    }
   };
   /*  */
   const newVal = ref('');
-  function submitHandler() {
-    if (newVal.value.trim() === '') return;
+  function submitHandler(str) {
+    console.count();
+    if (str.trim() === '') return;
     try {
-      ctrl[newVal.value]?.();
-      evaluate(newVal.value);
-      selectHandler(newVal.value);
-      option.value.includes(newVal.value) || option.value.push(newVal.value);
+      ctrl[str]?.();
+      evaluate(str);
+      selectHandler(str);
+      option.value.includes(str) || option.value.push(str);
     }
-    catch (e) { }
+    catch (e) {
+      str.includes(' ')
+        && str.split(' ').forEach(submitHandler);
+    }
     finally {
       newVal.value = '';
+      ctrl.sort();
     }
   }
   /*  */
@@ -115,7 +130,7 @@
           @contextmenu.prevent="deleteHandler(v)">{{ v }}</button>
       </li>
     </ul>
-    <form @submit.prevent="submitHandler">
+    <form @submit.prevent="submitHandler(newVal)">
       <input v-model.trim="newVal" ref="ipt">
       <button v-for="(f,k) of ctrl" @click="f" type="button">{{ k }}</button>
     </form>
@@ -168,8 +183,7 @@
           gap: 1px;
 
           li {
-            min-width: 10px;
-            min-height: 10px;
+            min-height: 20px;
             height: 100%;
             aspect-ratio: 1/1;
             position: relative;
@@ -223,7 +237,5 @@
 </style>
 
 <script>
-  const evaluate = str => Function(`return ${str}`)();
-  const pairwise = (fn, arr) => arr.map((a, ai) => arr.map((b, bi) => fn(a, b, ai, bi, arr.length)));
-  const curry = fn => (...args) => args.length >= fn.length ? fn(...args) : curry(fn.bind(null, ...args));
+  const evaluate = str => Function(`return (${str})`)();
 </script>
