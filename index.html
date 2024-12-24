@@ -16,15 +16,15 @@
     'else': '#bdc3c7',
     'neglect': 'transparent'
   };
-  const equalSet = ref({
-    'null': true,
-    'undefined': true,
+  const equalMap = ref({
+    // 'null': true,
+    // 'undefined': true,
     'true': true,
     'false': true,
-    '0': true,
-    '[]': true,
+    // '0': true,
+    // '[]': true,
   });
-  const biequal = curry(pairwise)((a, b, ai, bi, len) => {
+  const biequal = curry(pairwise)((b, a, ai, bi, len) => {
     const res = Object.create(null);
     if (evaluate(`(${a}) === (${b})`)) res.color = colorMap['==='];
     else if (evaluate(`(${a}) == (${b})`)) res.color = colorMap['=='];
@@ -34,18 +34,18 @@
       if (evaluate(`(${a}) >= (${b})`)) t += '>=';
       res.color = (t === '' ? colorMap['else'] : t === '<=' ? colorMap['<='] : t === '>=' ? colorMap['>='] : colorMap['<= && >=']);
     }
-    if (ai === 0) res.row = b;
-    if (bi === len - 1) res.col = a;
+    if (ai === 0) res.row = a;
+    if (bi === len - 1) res.col = b;
     return res;
   });
-  const matrix = computed(() => biequal(Object.keys(equalSet.value).filter(k => equalSet.value[k])));
+  const matrix = computed(() => biequal(Object.keys(equalMap.value).filter(k => equalMap.value[k])));
   /*  */
   const newVal = ref('');
   function submitHandler() {
     if (newVal.value.trim() === '') return;
     try {
       evaluate(newVal.value);
-      equalSet.value[newVal.value] = !equalSet.value[newVal.value];
+      equalMap.value[newVal.value] = !equalMap.value[newVal.value];
     }
     catch (e) { }
     finally {
@@ -57,6 +57,10 @@
   onMounted(() => {
     iptRef.value.focus();
   });
+  /*  */
+  // const option = [
+
+  // ]
 </script>
 
 <template>
@@ -84,7 +88,7 @@
 <style>
   @import "https://unpkg.com/@tofukit/resetcss@latest";
 
-    main {
+  main {
     width: 100vw;
     height: 100vh;
     display: flex;
