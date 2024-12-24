@@ -17,14 +17,10 @@
     'neglect': 'transparent'
   };
   const equalMap = ref(
-    JSON.parse(localStorage.getItem('equalMap') || 'undefined') ??
+    JSON.parse(localStorage.getItem('equalMap') ?? 'false') ||
     {
-      // 'null': true,
-      // 'undefined': true,
       'true': true,
       'false': true,
-      // '0': true,
-      // '[]': true,
     });
   const biequal = curry(pairwise)((b, a, ai, bi, len) => {
     const res = Object.create(null);
@@ -42,12 +38,34 @@
   });
   const matrix = computed(() => biequal(Object.keys(equalMap.value).filter(k => equalMap.value[k])));
   /*  */
+  const iptRef = useTemplateRef('ipt');
+  onMounted(() => {
+    iptRef.value.focus();
+  });
+  /*  */
+  const option = ref(
+    JSON.parse(localStorage.getItem('option') ?? 'false') ||
+    Object.keys(equalMap.value)
+  );
+  function selectHandler(v) {
+    if (Object.hasOwn(equalMap.value, v)) {
+      Reflect.deleteProperty(equalMap.value, v);
+    } else {
+      equalMap.value[v] = true;
+    }
+  }
+  function deleteHandler(v) {
+    Reflect.deleteProperty(equalMap.value, v);
+    option.value = option.value.filter(k => k !== v);
+  }
+  /*  */
   const newVal = ref('');
   function submitHandler() {
     if (newVal.value.trim() === '') return;
     try {
       evaluate(newVal.value);
       equalMap.value[newVal.value] = !equalMap.value[newVal.value];
+      option.value.includes(newVal.value) || option.value.push(newVal.value);
     }
     catch (e) { }
     finally {
@@ -55,18 +73,9 @@
     }
   }
   /*  */
-  const iptRef = useTemplateRef('ipt');
-  onMounted(() => {
-    iptRef.value.focus();
-  });
-  /*  */
-  // const option = [
-
-  // ]
-  /*  */
   watchEffect(() => {
     localStorage.setItem('equalMap', JSON.stringify(equalMap.value));
-    console.log(equalMap.value);
+    localStorage.setItem('option', JSON.stringify(option.value));
   })
 </script>
 
@@ -80,9 +89,16 @@
         </ol>
       </li>
     </ol>
-    <ul>
+    <!-- <ul>
       <li v-for="(v,k) of colorMap">
         <button v-if="k !== 'neglect'" :style="{backgroundColor: v}">{{ k }}</button>
+      </li>
+    </ul> -->
+    <ul>
+      <li v-for="v of option">
+        <button :style="{backgroundColor: equalMap[v]?colorMap.else:colorMap.neglect}"
+          @click="selectHandler(v)"
+          @contextmenu.prevent="deleteHandler(v)">{{v}}</button>
       </li>
     </ul>
     <form @submit.prevent="submitHandler">
