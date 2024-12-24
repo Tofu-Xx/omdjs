@@ -1,0 +1,176 @@
+<head>
+  <meta charset="UTF-8">
+  <title>Oh My Dear JS</title>
+  <link rel="shortcut icon" href="./favicon.png">
+  <script src="https://unpkg.com/setupin"></script>
+</head>
+
+<script setup>
+  import { ref, computed, useTemplateRef, onMounted } from 'vue';
+  const colorMap = {
+    '===': '#902b20',
+    '==': '#eb6c5f',
+    '>=': '#2ecc71',
+    '<=': '#3498db',
+    '<= && >=': '#f1c40f',
+    'else': '#bdc3c7',
+    'neglect': 'transparent'
+  };
+  const equalSet = ref({
+    'null': true,
+    'undefined': true,
+    'true': true,
+    'false': true,
+    '0': true,
+    '[]': true,
+  });
+  const biequal = curry(pairwise)((a, b, ai, bi, len) => {
+    const res = Object.create(null);
+    if (evaluate(`(${a}) === (${b})`)) res.color = colorMap['==='];
+    else if (evaluate(`(${a}) == (${b})`)) res.color = colorMap['=='];
+    else {
+      let t = '';
+      if (evaluate(`(${a}) <= (${b})`)) t += '<=';
+      if (evaluate(`(${a}) >= (${b})`)) t += '>=';
+      res.color = (t === '' ? colorMap['else'] : t === '<=' ? colorMap['<='] : t === '>=' ? colorMap['>='] : colorMap['<= && >=']);
+    }
+    if (ai === 0) res.row = b;
+    if (bi === len - 1) res.col = a;
+    return res;
+  });
+  const matrix = computed(() => biequal(Object.keys(equalSet.value).filter(k => equalSet.value[k])));
+  /*  */
+  const newVal = ref('');
+  function submitHandler() {
+    if (newVal.value.trim() === '') return;
+    try {
+      evaluate(newVal.value);
+      equalSet.value[newVal.value] = !equalSet.value[newVal.value];
+    }
+    catch (e) { }
+    finally {
+      newVal.value = '';
+    }
+  }
+  /*  */
+  const iptRef = useTemplateRef('ipt');
+  onMounted(() => {
+    iptRef.value.focus();
+  });
+</script>
+
+<template>
+  <main>
+    <ol id="show">
+      <li v-for="(outside,outi) of matrix">
+        <ol>
+          <li v-show="outi <= ini" v-for="({color,...attr},ini) of outside" v-bind="attr" :style="{backgroundColor: color}">
+          </li>
+        </ol>
+      </li>
+    </ol>
+    <ul>
+      <li v-for="(v,k) of colorMap">
+        <button v-if="k !== 'neglect'" :style="{backgroundColor: v}">{{ k }}</button>
+      </li>
+    </ul>
+    <form @submit.prevent="submitHandler">
+      <input v-model="newVal" ref="ipt">
+    </form>
+  </main>
+  <div></div>
+</template>
+
+<style>
+  @import "https://unpkg.com/@tofukit/resetcss@latest";
+
+    main {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 5vw;
+
+    & {
+      * {
+        z-index: 1;
+      }
+
+      ol {
+        z-index: 0;
+      }
+    }
+
+    #show {
+      display: flex;
+      aspect-ratio: 1/1;
+      width: 50vmin;
+      /* max-width: 50vw; */
+      flex-direction: column;
+      gap: 1px;
+      transform: translate(0, 14vmin) rotate(-45deg);
+
+      &>li {
+        flex: 1;
+
+        ol {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: end;
+          align-items: center;
+          gap: 1px;
+
+          li {
+            min-width: 10px;
+            min-height: 10px;
+            height: 100%;
+            aspect-ratio: 1/1;
+            position: relative;
+
+            &[row]::after {
+              position: absolute;
+              content: attr(row);
+              right: 100%;
+              bottom: 100%;
+              transform-origin: right bottom;
+              transform: rotate(45deg) translate(12px, -10px);
+            }
+
+            &[col]::before {
+              position: absolute;
+              content: attr(col);
+              left: 100%;
+              bottom: 0;
+              transform-origin: left bottom;
+              transform: rotate(45deg) translate(-12px, -10px);
+            }
+          }
+        }
+      }
+    }
+
+    ul {
+      /* width: 100vw; */
+      display: flex;
+      align-items: center;
+      padding: 0 0.5rem;
+      gap: 0.5rem;
+      margin: 0.5rem 0;
+      flex-wrap: wrap;
+
+      button {
+        width: 100%;
+        padding: 0 0.5rem;
+        border-radius: 0.5px;
+      }
+    }
+  }
+</style>
+
+<script>
+  const evaluate = str => Function(`return ${str}`)();
+  const pairwise = (fn, arr) => arr.map((a, ai) => arr.map((b, bi) => fn(a, b, ai, bi, arr.length)));
+  const curry = fn => (...args) => args.length >= fn.length ? fn(...args) : curry(fn.bind(null, ...args));
+</script>
