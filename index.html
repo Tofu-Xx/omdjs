@@ -6,7 +6,7 @@
 </head>
 
 <script setup>
-  import { ref, computed, useTemplateRef, onMounted } from 'vue';
+  import { ref, computed, useTemplateRef, onMounted, watchEffect } from 'vue';
   const colorMap = {
     '===': '#902b20',
     '==': '#eb6c5f',
@@ -16,14 +16,16 @@
     'else': '#bdc3c7',
     'neglect': 'transparent'
   };
-  const equalMap = ref({
-    // 'null': true,
-    // 'undefined': true,
-    'true': true,
-    'false': true,
-    // '0': true,
-    // '[]': true,
-  });
+  const equalMap = ref(
+    JSON.parse(localStorage.getItem('equalMap') || 'undefined') ??
+    {
+      // 'null': true,
+      // 'undefined': true,
+      'true': true,
+      'false': true,
+      // '0': true,
+      // '[]': true,
+    });
   const biequal = curry(pairwise)((b, a, ai, bi, len) => {
     const res = Object.create(null);
     if (evaluate(`(${a}) === (${b})`)) res.color = colorMap['==='];
@@ -61,6 +63,11 @@
   // const option = [
 
   // ]
+  /*  */
+  watchEffect(() => {
+    localStorage.setItem('equalMap', JSON.stringify(equalMap.value));
+    console.log(equalMap.value);
+  })
 </script>
 
 <template>
@@ -82,7 +89,6 @@
       <input v-model="newVal" ref="ipt">
     </form>
   </main>
-  <div></div>
 </template>
 
 <style>
@@ -93,6 +99,7 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
+    justify-content: space-evenly;
     align-items: center;
     padding: 0 5vw;
 
