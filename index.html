@@ -17,26 +17,30 @@
     'neglect': 'transparent'
   };
   const equalMap = ref(
-    JSON.parse(localStorage.getItem('equalMap') ?? 'false') ||
-    new Map([
-      ['true', true],
-      ['false', true],
-    ])
+    new Map(
+      JSON.parse(localStorage.getItem('equalMap') ?? 'false') ||
+      [
+        ['true', true],
+        ['false', true],
+      ]
+    )
   );
-  const biequal = curry(pairwise)((b, a, ai, bi, len) => {
-    const res = Object.create(null);
-    if (evaluate(`(${a}) === (${b})`)) res.color = colorMap['==='];
-    else if (evaluate(`(${a}) == (${b})`)) res.color = colorMap['=='];
+  const cell = (b, a, ai, bi, len) => {
+    let color;
+    if (evaluate(`(${a}) === (${b})`)) color = colorMap['==='];
+    else if (evaluate(`(${a}) == (${b})`)) color = colorMap['=='];
     else {
       let t = '';
       if (evaluate(`(${a}) <= (${b})`)) t += '<=';
       if (evaluate(`(${a}) >= (${b})`)) t += '>=';
-      res.color = (t === '' ? colorMap['else'] : t === '<=' ? colorMap['<='] : t === '>=' ? colorMap['>='] : colorMap['<= && >=']);
+      color = (t === '' ? colorMap['else'] : t === '<=' ? colorMap['<='] : t === '>=' ? colorMap['>='] : colorMap['<= && >=']);
     }
+    const res = { style: { backgroundColor: color } };
     if (ai === 0) res.row = a;
     if (bi === len - 1) res.col = b;
     return res;
-  });
+  };
+  const biequal = curry(pairwise)(cell);
   const matrix = computed(() => biequal(Object.keys(equalMap.value).filter(k => equalMap.value[k])));
   /*  */
   const iptRef = useTemplateRef('ipt');
@@ -45,26 +49,27 @@
   /*  */
   const option = ref(
     JSON.parse(localStorage.getItem('option') ?? 'false') ||
-    Object.keys(equalMap.value)
+    Array(...equalMap.value.keys())
   );
   function selectHandler(v) {
-    if (Object.hasOwn(equalMap.value, v)) {
-      Reflect.deleteProperty(equalMap.value, v);
+    if (equalMap.value.has(v)) {
+      equalMap.value.delete(v);
     } else {
-      equalMap.value[v] = true;
+      equalMap.value.set(v, true);
     }
   }
   function deleteHandler(v) {
-    Reflect.deleteProperty(equalMap.value, v);
+    equalMap.value.delete(v);
     option.value = option.value.filter(k => k !== v);
   }
   /*  */
   const newVal = ref('');
+  // window.m = equalMap.value;
   function submitHandler() {
     if (newVal.value.trim() === '') return;
     try {
       evaluate(newVal.value);
-      equalMap.value[newVal.value] = !equalMap.value[newVal.value];
+      selectHandler(newVal.value);
       option.value.includes(newVal.value) || option.value.push(newVal.value);
     }
     catch (e) { }
@@ -74,7 +79,7 @@
   }
   /*  */
   watchEffect(() => {
-    localStorage.setItem('equalMap', JSON.stringify(equalMap.value));
+    localStorage.setItem('equalMap', JSON.stringify(Array(...equalMap.value.entries())));
     localStorage.setItem('option', JSON.stringify(option.value));
     iptRef.value?.focus();
   })
@@ -83,9 +88,16 @@
 <template>
   <main>
     <ol id="show">
-      <li v-for="(outside,outi) of matrix">
+      <!-- <li v-for="(outside,outi) of matrix">
         <ol>
           <li v-show="outi <= ini" v-for="({color,...attr},ini) of outside" v-bind="attr" :style="{backgroundColor: color}">
+          </li>
+        </ol>
+      </li> -->
+      <li v-show="outb" v-for="([outside,outb],outi) of equalMap">
+        <ol>
+          <li v-show="outi <= ini&&inb" v-for="([inside,inb],ini) of equalMap" v-bind="cell(outside,inside,outi,ini,equalMap.size)">
+            {{outb}},{{inb}}
           </li>
         </ol>
       </li>
@@ -97,9 +109,9 @@
     </ul> -->
     <ul>
       <li v-for="v of option">
-        <button :style="{backgroundColor: equalMap[v]?colorMap.else:colorMap.neglect}"
+        <button :style="{backgroundColor: equalMap.get(v) ? colorMap.else : colorMap.neglect}"
           @click="selectHandler(v)"
-          @contextmenu.prevent="deleteHandler(v)">{{v}}</button>
+          @contextmenu.prevent="deleteHandler(v)">{{ v }}</button>
       </li>
     </ul>
     <form @submit.prevent="submitHandler">
