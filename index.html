@@ -18,10 +18,11 @@
   };
   const equalMap = ref(
     JSON.parse(localStorage.getItem('equalMap') ?? 'false') ||
-    {
-      'true': true,
-      'false': true,
-    });
+    new Map([
+      ['true', true],
+      ['false', true],
+    ])
+  );
   const biequal = curry(pairwise)((b, a, ai, bi, len) => {
     const res = Object.create(null);
     if (evaluate(`(${a}) === (${b})`)) res.color = colorMap['==='];
@@ -39,9 +40,8 @@
   const matrix = computed(() => biequal(Object.keys(equalMap.value).filter(k => equalMap.value[k])));
   /*  */
   const iptRef = useTemplateRef('ipt');
-  onMounted(() => {
-    iptRef.value.focus();
-  });
+  // onMounted(() => {
+  // });
   /*  */
   const option = ref(
     JSON.parse(localStorage.getItem('option') ?? 'false') ||
@@ -76,6 +76,7 @@
   watchEffect(() => {
     localStorage.setItem('equalMap', JSON.stringify(equalMap.value));
     localStorage.setItem('option', JSON.stringify(option.value));
+    iptRef.value?.focus();
   })
 </script>
 
