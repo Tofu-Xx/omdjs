@@ -18,7 +18,7 @@
   const equalSet = ref(
     new Set(
       JSON.parse(localStorage.getItem('equalSet') ?? 'false')
-      || ['true', 'false']
+      || ['""', '0n', 'false', '0', 'undefined', 'null', 'Symbol()','{}','[]']
     )
   );
   const isRect = ref(JSON.parse(localStorage.getItem('isRect')) ?? true);
