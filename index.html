@@ -26,17 +26,9 @@
   const isRect = ref(JSON.parse(localStorage.getItem('isRect')) ?? true);
   /*  */
   function getRelation(a, b) {
-    const infix = (operator) => evaluate(`(${a})${operator}(${b})`);
-    try {
-      if (infix('===')) return '===';
-      if (infix('==')) return '==';
-      if (infix('<=') && infix('>=')) return '<= && >=';
-      if (infix('<')) return '<';
-      if (infix('>')) return '>';
-      if (infix('<=')) return '<=';
-      if (infix('>=')) return '>=';
-    } catch { }
-    return 'else';
+    for (const ope in colorMap) {
+      if (ope === 'else' || prefixEvaluate(ope, a, b)) return ope;
+    }
   }
   function getCellAttr(b, a, ai, bi, len) {
     return {
@@ -88,8 +80,8 @@
       const t = ['===', '==', '<= && >=', '<=', '>=', 'else'];
       equalSet.value = new Set([...equalSet.value]
         .sort((a, b) => t.indexOf(getRelation(a, a)) - t.indexOf(getRelation(b, b)))
-        .sort((a, b) => getRelation(a, b) == '>=' ? 1 : -1)
-        .sort((a, b) => getRelation(a, b) == '>=' ? 1 : -1)
+        .sort((a, b) => prefixEvaluate('>=', a, b) ? 1 : -1)
+        .sort((a, b) => prefixEvaluate('>=', a, b) ? 1 : -1)
       );
       option.value = [...new Set([...equalSet.value, ...option.value])];
     },
@@ -107,16 +99,14 @@
     ipt = ipt.trim();
     if (ipt === '') return;
     if (doCmd()) return;
-    try {
-      if (evaluate(`[${ipt}]`).length > 1) {
-        ipt.split(',').forEach(submitHandler);
-        return;
-      }
-      toggleHandler(ipt);
-      option.value.includes(ipt) || option.value.push(ipt);
-      iptVal.value = '';
+    if (evaluate(ipt) instanceof Error) return;
+    if (evaluate(`[${ipt}]`).length > 1) {
+      ipt.split(',').forEach(submitHandler);
+      return;
     }
-    catch { }
+    toggleHandler(ipt);
+    option.value.includes(ipt) || option.value.push(ipt);
+    iptVal.value = '';
   }
   /*  */
   watchEffect(() => {
@@ -260,5 +250,17 @@
 </style>
 
 <script>
-  const evaluate = str => Function(`return (${str})`)();
+  const evaluate = str => {
+    try {
+      return Function(`return (${str})`)();
+    }
+    catch (e) {
+      return e;
+    }
+  };
+  const prefixEvaluate = (operator, a, b) => {
+    const infix = operator.replace(/(\&\&|\|\|)/g, t => `(${b})${t}(${a})`);
+    const res = evaluate(`(${a})${infix}(${b})`);
+    return res instanceof Error ? void 0 : res;
+  };
 </script>
