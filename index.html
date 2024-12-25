@@ -94,9 +94,8 @@
     if (ipt === '') return;
     if (doCmd()) return;
     try {
-      const iptArr = evaluate(`[${ipt}]`);
-      if (iptArr.length > 1) {
-        iptArr.forEach(submitHandler);
+      if (evaluate(`[${ipt}]`).length > 1) {
+        ipt.split(',').forEach(submitHandler)
         return;
       }
       toggleHandler(ipt);
