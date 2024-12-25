@@ -84,22 +84,20 @@
   };
   /*  */
   const newVal = ref('');
-  function submitHandler(str) {
-    if (str.trim() === '') return;
+  function submitHandler(ipt) {
+    if (ipt === '') return;
     try {
-      ctrl[str]?.();
-      evaluate(str);
-      selectHandler(str);
-      option.value.includes(str) || option.value.push(str);
-    }
-    catch (e) {
-      str.includes(' ')
-        && str.split(' ').forEach(submitHandler);
-    }
-    finally {
+      ctrl[ipt]?.();
+      const iptArr = evaluate(`[${ipt}]`);
+      if (iptArr.length > 1) {
+        iptArr.forEach(submitHandler);
+        return;
+      }
+      selectHandler(ipt);
+      option.value.includes(ipt) || option.value.push(ipt) && ctrl.sort();
       newVal.value = '';
-      ctrl.sort();
     }
+    catch { }
   }
   /*  */
   watchEffect(() => {
