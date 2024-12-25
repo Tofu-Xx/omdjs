@@ -14,7 +14,7 @@
     '<=': '#3498db',
     '<= && >=': '#f1c40f',
     'else': '#bdc3c7',
-    'neglect': 'transparent'
+    'error': '#f74c3c',
   };
   const equalSet = ref(
     new Set(
@@ -22,20 +22,26 @@
       || ['true', 'false']
     )
   );
-  const cell = (b, a, ai, bi, len) => {
-    let color;
-    if (evaluate(`(${a}) === (${b})`)) color = colorMap['==='];
-    else if (evaluate(`(${a}) == (${b})`)) color = colorMap['=='];
-    else {
-      let t = '';
-      if (evaluate(`(${a}) <= (${b})`)) t += '<=';
-      if (evaluate(`(${a}) >= (${b})`)) t += '>=';
-      color = colorMap[t || 'else'] ?? colorMap['<= && >='];
+  function getRelation(a, b) {
+    const infix = (operator) => evaluate(`(${a})${operator}(${b})`);
+    try {
+      if (infix('===')) return '===';
+      if (infix('==')) return '==';
+      if (infix('<=') && infix('>=')) return '<= && >=';
+      if (infix('<=')) return '<=';
+      if (infix('>=')) return '>=';
+      return 'else';
     }
-    const res = { style: { backgroundColor: color } };
-    if (ai === 0) res.row = a;
-    if (bi === len - 1) res.col = b;
-    return res;
+    catch (e) {
+      return 'error';
+    }
+  }
+  function getCellAttr(b, a, ai, bi, len) {
+    return {
+      style: `background-color: ${colorMap[getRelation(a, b)]}`,
+      ...(ai === 0 && { row: a }),
+      ...(bi === len - 1 && { col: b }),
+    };
   };
   /*  */
   const iptRef = useTemplateRef('ipt');
@@ -58,27 +64,25 @@
   /*  */
   const isRect = ref(JSON.parse(localStorage.getItem('isRect')) ?? true);
   const ctrl = {
-    rotate() {
-      isRect.value = !isRect.value;
-    },
     clear() {
       equalSet.value.clear();
     },
-    order() {
-      option.value = [...new Set([...equalSet.value, ...option.value])];
-    },
-    sort() {
-      equalSet.value = new Set([...equalSet.value].sort((a, b) => evaluate(`(${a}) >= (${b})`) - .5));
-      ctrl.order();
-    },
     all() {
       equalSet.value = new Set(option.value);
-    }
+    },
+    sort() {
+      equalSet.value = new Set([...equalSet.value].sort((a, b) => {
+        // const rel = getRelation(a, b);
+      }));
+      option.value = [...new Set([...equalSet.value, ...option.value])];
+    },
+    rotate() {
+      isRect.value = !isRect.value;
+    },
   };
   /*  */
   const newVal = ref('');
   function submitHandler(str) {
-    console.count();
     if (str.trim() === '') return;
     try {
       ctrl[str]?.();
@@ -112,20 +116,20 @@
         <ol>
           <li
             v-show="isRect || outi <= ini" v-for="(inside,ini) of equalSet"
-            v-bind="cell(outside,inside,outi,ini,equalSet.size)">
+            v-bind="getCellAttr(outside,inside,outi,ini,equalSet.size)">
           </li>
         </ol>
       </li>
     </ol>
     <ul>
       <li v-for="(v,k) of colorMap">
-        <pre v-if="k !== 'neglect'" :style="{backgroundColor: v}">{{ k }}</pre>
+        <pre :style="{backgroundColor: v}">{{ k }}</pre>
       </li>
     </ul>
     <ul>
       <li v-for="v of option">
         <button
-          :style="{backgroundColor: equalSet.has(v) ? colorMap.else : colorMap.neglect}"
+          :style="equalSet.has(v)&&`background-color: ${colorMap.else}`"
           @click="selectHandler(v)"
           @contextmenu.prevent="deleteHandler(v)">{{ v }}</button>
       </li>
