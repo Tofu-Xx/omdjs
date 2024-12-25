@@ -10,9 +10,11 @@
   const colorMap = {
     '===': '#902b20',
     '==': '#eb6c5f',
-    '>=': '#2ecc71',
-    '<=': '#3498db',
     '<= && >=': '#f1c40f',
+    '<': '#3498db',
+    '>': '#2ecc71',
+    '<=': '#84d8db',
+    '>=': '#7ecc91',
     'else': '#bdc3c7',
   };
   const equalSet = ref(
@@ -29,6 +31,8 @@
       if (infix('===')) return '===';
       if (infix('==')) return '==';
       if (infix('<=') && infix('>=')) return '<= && >=';
+      if (infix('<')) return '<';
+      if (infix('>')) return '>';
       if (infix('<=')) return '<=';
       if (infix('>=')) return '>=';
     } catch { }
@@ -67,6 +71,10 @@
     },
     all() {
       equalSet.value = new Set(option.value);
+    },
+    delete() {
+      ctrl.clear();
+      option.value = [];
     },
     shuffle() {
       const arr = [...equalSet.value];
