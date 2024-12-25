@@ -21,6 +21,8 @@
       || ['true', 'false']
     )
   );
+  const isRect = ref(JSON.parse(localStorage.getItem('isRect')) ?? true);
+  /*  */
   function getRelation(a, b) {
     const infix = (operator) => evaluate(`(${a})${operator}(${b})`);
     try {
@@ -46,7 +48,7 @@
     JSON.parse(localStorage.getItem('option') ?? 'false')
     || Array(...equalSet.value)
   );
-  function selectHandler(v) {
+  function toggleHandler(v) {
     if (equalSet.value.has(v)) {
       equalSet.value.delete(v);
     } else {
@@ -58,7 +60,7 @@
     option.value = option.value.filter(k => k !== v);
   }
   /*  */
-  const isRect = ref(JSON.parse(localStorage.getItem('isRect')) ?? true);
+  const iptVal = ref('');
   const ctrl = {
     clear() {
       equalSet.value.clear();
@@ -82,20 +84,24 @@
       isRect.value = !isRect.value;
     },
   };
-  /*  */
-  const newVal = ref('');
+  function doCmd() {
+    const isCmd = Object.hasOwn(ctrl, iptVal.value);
+    isCmd && ctrl[iptVal.value]();
+    iptVal.value = '';
+    return isCmd;
+  }
   function submitHandler(ipt) {
     if (ipt === '') return;
+    if (doCmd()) return;
     try {
-      ctrl[ipt]?.();
       const iptArr = evaluate(`[${ipt}]`);
       if (iptArr.length > 1) {
         iptArr.forEach(submitHandler);
         return;
       }
-      selectHandler(ipt);
-      option.value.includes(ipt) || option.value.push(ipt) && ctrl.sort();
-      newVal.value = '';
+      toggleHandler(ipt);
+      option.value.includes(ipt) || option.value.push(ipt)
+      iptVal.value = '';
     }
     catch { }
   }
@@ -130,12 +136,12 @@
       <li v-for="v of option">
         <button
           :style="equalSet.has(v)&&`background-color: ${colorMap.else}`"
-          @click="selectHandler(v)"
+          @click="toggleHandler(v)"
           @contextmenu.prevent="deleteHandler(v)">{{ v }}</button>
       </li>
     </ul>
-    <form @submit.prevent="submitHandler(newVal)">
-      <input v-model.trim="newVal" ref="ipt">
+    <form @submit.prevent="submitHandler(iptVal)">
+      <input v-model.trim="iptVal" ref="ipt">
       <button v-for="(f,k) of ctrl" @click="f" type="button">{{ k }}</button>
     </form>
   </main>
