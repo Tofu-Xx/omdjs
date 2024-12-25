@@ -26,9 +26,9 @@
   const isRect = ref(JSON.parse(localStorage.getItem('isRect')) ?? true);
   /*  */
   function getRelation(a, b) {
-    for (const ope in colorMap) {
-      if (ope === 'else' || prefixEvaluate(ope, a, b)) return ope;
-    }
+    for (const ope in colorMap)
+      if (ope === 'else' || prefixEvaluate(ope, a, b))
+        return ope;
   }
   function getCellAttr(b, a, ai, bi, len) {
     return {
@@ -250,7 +250,7 @@
 </style>
 
 <script>
-  const evaluate = str => {
+  function evaluate(str) {
     try {
       return Function(`return (${str})`)();
     }
@@ -258,7 +258,7 @@
       return e;
     }
   };
-  const prefixEvaluate = (operator, a, b) => {
+  function prefixEvaluate(operator, a, b) {
     const infix = operator.replace(/(\&\&|\|\|)/g, t => `(${b})${t}(${a})`);
     const res = evaluate(`(${a})${infix}(${b})`);
     return res instanceof Error ? void 0 : res;
