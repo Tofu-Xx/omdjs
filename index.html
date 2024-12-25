@@ -77,14 +77,11 @@
       equalSet.value = new Set(arr);
     },
     sort() {
-      const t = ['===', '==', '<= && >=', '<=', '>=', 'else', 'error'];
+      const t = ['===', '==', '<= && >=', '<=', '>=', 'else'];
       equalSet.value = new Set([...equalSet.value]
-        .sort((a, b) => {
-          return t.indexOf(getRelation(a, a)) - t.indexOf(getRelation(b, b));
-        })
-        .sort((a, b) => {
-          return t.indexOf(getRelation(a, b)) - t.indexOf(getRelation(b, a));
-        })
+        .sort((a, b) => t.indexOf(getRelation(a, a)) - t.indexOf(getRelation(b, b)))
+        .sort((a, b) => getRelation(a, b) == '>=' ? 1 : -1)
+        .sort((a, b) => getRelation(a, b) == '>=' ? 1 : -1)
       );
       option.value = [...new Set([...equalSet.value, ...option.value])];
     },
