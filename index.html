@@ -11,10 +11,8 @@
     '===': '#902b20',
     '==': '#eb6c5f',
     '<= && >=': '#f1c40f',
-    '<': '#3498db',
-    '>': '#2ecc71',
-    '<=': '#84d8db',
-    '>=': '#7ecc91',
+    '<=': '#3498db',
+    '>=': '#2ecc71',
     'else': '#bdc3c7',
   };
   const equalSet = ref(
@@ -205,20 +203,20 @@
             &[row]::after {
               position: absolute;
               content: attr(row);
-              right: 100%;
-              bottom: 100%;
+              right: 70%;
+              bottom: 70%;
               transform-origin: right bottom;
-              transform: rotate(45deg) translate(-0.2vmin, 0.25vmin);
+              transform: rotate(45deg) translate(-1.5vmin, -1.5vmin);
               font-size: min(100%, 3vmin);
             }
 
             &[col]::before {
               position: absolute;
               content: attr(col);
-              left: 100%;
-              bottom: 0;
+              left: 70%;
+              bottom: 30%;
               transform-origin: left bottom;
-              transform: rotate(45deg) translate(0.2vmin, 0.25vmin);
+              transform: rotate(45deg) translate(1.5vmin, -1.5vmin);
               font-size: min(100%, 3vmin);
             }
           }
