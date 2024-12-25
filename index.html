@@ -68,6 +68,14 @@
     all() {
       equalSet.value = new Set(option.value);
     },
+    shuffle() {
+      const arr = [...equalSet.value];
+      for (let i in arr) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      equalSet.value = new Set(arr);
+    },
     sort() {
       const t = ['===', '==', '<= && >=', '<=', '>=', 'else', 'error'];
       equalSet.value = new Set([...equalSet.value]
@@ -76,6 +84,7 @@
         })
         .sort((a, b) => {
           return t.indexOf(getRelation(a, b)) - t.indexOf(getRelation(b, a));
+          // return getRelation(a, b) == '>=' - .5;
         })
       );
       option.value = [...new Set([...equalSet.value, ...option.value])];
@@ -95,11 +104,11 @@
     if (doCmd()) return;
     try {
       if (evaluate(`[${ipt}]`).length > 1) {
-        ipt.split(',').forEach(submitHandler)
+        ipt.split(',').forEach(submitHandler);
         return;
       }
       toggleHandler(ipt);
-      option.value.includes(ipt) || option.value.push(ipt)
+      option.value.includes(ipt) || option.value.push(ipt);
       iptVal.value = '';
     }
     catch { }
