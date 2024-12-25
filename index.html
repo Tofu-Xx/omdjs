@@ -14,7 +14,6 @@
     '<=': '#3498db',
     '<= && >=': '#f1c40f',
     'else': '#bdc3c7',
-    'error': '#f74c3c',
   };
   const equalSet = ref(
     new Set(
@@ -30,11 +29,8 @@
       if (infix('<=') && infix('>=')) return '<= && >=';
       if (infix('<=')) return '<=';
       if (infix('>=')) return '>=';
-      return 'else';
-    }
-    catch (e) {
-      return 'error';
-    }
+    } catch { }
+    return 'else';
   }
   function getCellAttr(b, a, ai, bi, len) {
     return {
@@ -71,9 +67,15 @@
       equalSet.value = new Set(option.value);
     },
     sort() {
-      equalSet.value = new Set([...equalSet.value].sort((a, b) => {
-        // const rel = getRelation(a, b);
-      }));
+      const t = ['===', '==', '<= && >=', '<=', '>=', 'else', 'error'];
+      equalSet.value = new Set([...equalSet.value]
+        .sort((a, b) => {
+          return t.indexOf(getRelation(a, a)) - t.indexOf(getRelation(b, b));
+        })
+        .sort((a, b) => {
+          return t.indexOf(getRelation(a, b)) - t.indexOf(getRelation(b, a));
+        })
+      );
       option.value = [...new Set([...equalSet.value, ...option.value])];
     },
     rotate() {
