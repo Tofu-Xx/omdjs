@@ -120,7 +120,7 @@
   <main>
     <ul id="color-tag">
       <li v-for="(v,k) of colorMap">
-        <pre :style="{backgroundColor: v}">{{ k }}</pre>
+        <button :style="{backgroundColor: v}">{{ k }}</button>
       </li>
     </ul>
     <ol id="equal-rect">
@@ -170,6 +170,10 @@
   main {
     position: relative;
 
+    &+* {
+      z-index: 1;
+    }
+
     #color-tag {
       left: -10rem;
       position: absolute;
@@ -183,11 +187,10 @@
       aspect-ratio: 1/1;
       width: 50vmin;
       flex-direction: column;
-      z-index: -1;
       gap: 1px;
 
       &:has([style*="display"]) {
-        transform: translate(0, 14vmin) rotate(-45deg);
+        transform: translate(0, v-bind('24 - 24 * Math.exp(-0.2 * equalSet.size) + "vmin"')) rotate(-45deg);
       }
 
       &>li {
@@ -204,7 +207,6 @@
 
           li {
             z-index: 1;
-            min-height: 20px;
             height: 100%;
             aspect-ratio: 1/1;
             position: relative;
