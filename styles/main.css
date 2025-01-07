@@ -7,11 +7,20 @@ body {
   padding: 0 5vw;
   overflow: hidden;
 }
-
+::selection {
+  background: #333;
+  color: #fff;
+}
+h1 {
+  padding-bottom: 6rem;
+  font-size: 48px;
+  font-weight: inherit;
+  font-variant: small-caps;
+}
 main {
   position: relative;
 
-  & ~ * {
+  &~* {
     z-index: 1;
   }
 
