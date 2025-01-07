@@ -15,10 +15,11 @@
     '>=': '#2ecc71',
     'else': '#bdc3c7',
   };
+  const defaultEqualSet = ['""', '0n', 'false', '0', 'undefined', 'null', 'Symbol()', '{}', '[]'];
   const equalSet = ref(
     new Set(
       JSON.parse(localStorage.getItem('equalSet') ?? 'false')
-      || ['""', '0n', 'false', '0', 'undefined', 'null', 'Symbol()', '{}', '[]']
+      || defaultEqualSet
     )
   );
   const isRect = ref(JSON.parse(localStorage.getItem('isRect')) ?? true);
@@ -154,7 +155,7 @@
 
 <style>
   @import "https://unpkg.com/@tofukit/resetcss@latest";
-  @import url(./index.css);
+  @import url(./styles/main.css);
 
   #equal-rect:has([style*="none"]) {
     transform: translate(0, v-bind('20 - 20 * Math.exp(-0.2 * equalSet.size) + "vmin"')) rotate(-45deg);
@@ -170,6 +171,7 @@
       return e;
     }
   };
+
   function prefixEvaluate(operator, a, b) {
     const infix = operator.replace(/(\&\&|\|\|)/g, t => `(${b})${t}(${a})`);
     const res = evaluate(`(${a})${infix}(${b})`);
